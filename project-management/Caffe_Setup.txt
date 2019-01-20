@@ -1,0 +1,189 @@
+Caffe Preinstall Requirements
+=============================
+
+CUDA Toolkit Installation
+=========================
+
+Install CUDA Toolkit from nvidia by following instructions from http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html . RPM download size is 1.5GB!! + CUDA package is some 2.5GB
+
+Follow the install instructions closely 
+
+http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
+
+Install the toolkit to /usr/local/cuda
+
+CuDNN Installation Steps
+========================
+
+Download the tar.gz package from https://developer.nvidia.com/cudnn and extract to a local dir named cudnn
+
+cd cudnn
+sudo cp cuda/include/cudnn.h /usr/local/cuda/include/
+sudo cp cuda/lib64/libcudnn* /usr/local/cuda/lib64
+sudo chmod a+r /usr/local/cuda/include/cudnn.h /usr/local/cuda/lib64/libcudnn*
+
+=====================================================================================
+Install older GCC version, to ensure Caffe will compile with Accelarated GPU computing support 
+=====================================================================================
+
+NVCC will not compile with newer version of gcc (gcc version 7.1.1 20170526) from Fedora 26. We will have to either downgrade to Fedora 25, or install gcc-6.4.1 
+
+We will compile gcc-6.4.1 from source (no binaries, since they will conflict and break the stock gcc)
+
+Follow instructions from here 
+
+http://www.tellurian.com.au/whitepapers/multiplegcc.php. Download the required version of gcc (6.4.1-20170727) from 
+
+Get the gcc source package 
+
+wget  https://src.fedoraproject.org/repo/extras/rpms/gcc/gcc-6.4.1-20170727.tar.bz2/sha512/d72c7597765abe298c6201fcd437d0eaeb2ead0c9dd1ad001a8fa38b243dd2a935796686ee0d578c4f17082c1761700527b8010047f0c783dbd9f102247aad32/gcc-6.4.1-20170727.tar.bz2
+
+Untar the tar file to a separate directory 
+
+tar -xvfj gcc-6.4.1-20170727.tar.bz2 -C /home/senthil/Downloads/gcc6.4.1 
+
+Install 32-bit devel libraries and headers 
+
+sudo dnf install glibc-devel.i686 glibc-headers.i686
+
+
+===========================================================================
+Address GCC dependencies
+===========================================================================
+
+gcc depends on gmp,mpfr and mpc libraries. Let gcc compile these libraries as needed to avoid version mismatch
+
+Run the following script in the top level directory of the gcc source 
+
+ ./contrib/download_prerequisites
+
+If the above script fails run do the following 
+
+Follow instructions provided by Jonathan Leffler here https://stackoverflow.com/questions/9253695/building-gcc-requires-gmp-4-2-mpfr-2-3-1-and-mpc-0-8-0
+
+
+Download the latest version of these libraries. This is the latest as of 20171106
+
+wget ftp://gcc.gnu.org/pub/gcc/infrastructure/gmp-6.1.0.tar.bz2
+wget ftp://gcc.gnu.org/pub/gcc/infrastructure/mpfr-3.1.4.tar.bz2
+wget ftp://gcc.gnu.org/pub/gcc/infrastructure/mpc-1.0.3.tar.gz
+
+Untar the bzip2  packages into the top level directory of the gcc source
+
+	tar xvfj gmp-6.1.0.tar.bz2 
+	tar xvfj mpfr-3.1.4.tar.bz2
+
+Untar the gz  packages
+	tar xvfz mpc-1.0.3.tar.gz	
+
+
+Create symbolic links in the top level source dir (/home/senthil/Downloads/gcc6.4.1)
+ln -s gmp-6.1.0 gmp 
+ln -s mpfr-3.1.4 mpfr
+ln -s mpc-1.0.3 mpc
+=========================================================================== 
+
+Install flex 
+
+	sudo dnf install flex
+
+
+Build only necessary items. Initial build failed in java 32 bit, so disable support for 32 bit and java, and save some build time in the process
+Make sure the prefix directory path / name does not contain any hyphens
+
+../configure --prefix=/usr/local/gcc/6.4.1 --enable-languages=c,c++ --disable-multilib
+
+make Takes an insanely long time!!!!!!  Try using all the cores on the machine first
+
+make bootstrap -j 8 (8 cores / CPU on my machine)
+
+Now make install as sudo. Create the destination path first
+
+sudo mkdir -p /usr/local/gcc/6.4.1
+sudo make install 
+
+Check that the new gcc,g++ binaries are installed by running 
+
+/usr/local/gcc/6.4.1/bin/g++ -v 
+/usr/local/gcc/6.4.1/bin/gcc -v 
+
+and see if you see the correct versions displayed. We need to point to this g++ version in the Makefile.config 
+
+=======================
+Caffe - Finally we are ready to install 
+=======================
+
+1. Clone git repo from https://github.com/BVLC/caffe
+
+Follow compilation instructions from http://caffe.berkeleyvision.org/installation.html#compilation
+
+Copy the Makefile.config.example to Makefile.config
+
+	a)Install BLAS library (atlas)
+	
+			sudo dnf install atlas atlas-devel
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Make the following Makefile.config settings changes
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+USE_CUDNN = 1
+
+Ensure CPU_ONLY=1 is commented out
+
+CUDA_DIR = /usr/local/cuda
+
+CUSTOM_CXX := /usr/local/gcc/6.4.1/bin/g++
+
+To deal with unsupported gpu_architecture issues, remove the following lines in the variable below
+
+CUDA_ARCH  
+		-gencode arch=compute=20, code=sm_20
+
+BLAS := atlas
+
+LIBRARY_DIRS := $(PYTHON_LIB) /usr/local/lib64 /usr/lib64
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Make the following changes to the Makefile
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#ATLAS library names are different in Redhat based distributions 
+Comment the line below  
+# LIBRARIES += cblas atlas
+and change the library name to 
+LIBRARIES +=satlas tatlas
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Make the follwing changes in /usr/local/cuda/include/crt/common_functions.h
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//#define __CUDACC_VER__ "__CUDACC_VER__ is no longer supported.  Use __CUDACC_VER_MAJOR__, __CUDACC_VER_MINOR__, and __CUDACC_VER_BUILD__ instead."
+// Fix from https://devtalk.nvidia.com/default/topic/1023476/cuda-programming-and-performance/boost-under-cuda-9/
+#define __CUDACC_VER__ 90000
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+change to directory containing the cloned git repository 
+
+*********************************
+Also had to install following:
+protobuf-devel
+protobuf-compiler
+glog-devel
+gflags-devel
+gtest-devel
+lmdb-devel
+leveldb-devel
+*******************************
+make all
+make test
+make runtest
+
+================================================
+
+
+

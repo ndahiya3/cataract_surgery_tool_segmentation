@@ -1,0 +1,23 @@
+# Folowing instructions:
+http://blog.mdda.net/ai/2017/08/30/tensorflow-from-source-fedora
+============================================================================
+Will install a few things:
+python3-devel
+python3-numpy
+pyton3-virtualenv
+bazel
+============================================================================
+In configure step accept same settings as tutorial but change the following:
+Say yes to Cuda and then provide location for Cuda and GCC as installed for caffe
+use cuda version 9.0
+use cudaNN version 7 (instead of 7.0)
+============================================================================
+Replace file tensorflow/compiler/xla/service/cpu/simple_orc_jit.cc  with uploaded file
+============================================================================
+Use the following command instead of corresponding command in online instructions
+bazel build -c opt --verbose_failures --copt="-D__STDC_FORMAT_MACROS" --config=opt //tensorflow/tools/pip_package:build_pip_package
+============================================================================
+All other steps should be same
+============================================================================
+bazel-bin/tensorflow/examples/image_retraining/retrain --image_dir=/data/ndahiya/TF/train --output_graph=~/output_graph.pb --output_labels=~/output_label.txt --summaries_dir=~/retrain_logs --how_many_training_steps=4000 --print_misclassified_test_images
+bazel-bin/tensorflow/examples/label_image/label_image --graph=/tmp/output_graph.pb --labels=/tmp/output_labels.txt --output_layer=final_result:0 --input_layer=Mul --image=$HOME/tool_20_video24_6

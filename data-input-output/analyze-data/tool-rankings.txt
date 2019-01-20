@@ -1,0 +1,21 @@
+micromanipulator,86974
+phacoemulsifier handpiece,75711
+irrigation/aspiration handpiece,70305
+capsulorhexis cystotome,21874
+Rycroft canula,15631
+vitrectomy handpiece,13657
+viscoelastic cannula,12538
+hydrodissection canula,12032
+Charleux canula,8838
+capsulorhexis forceps,7977
+implant injector,6966
+Bonn forceps,5407
+cotton,3714
+primary incision knife,3464
+secondary incision knife,2577
+Troutman forceps,1276
+suture needle,1084
+Mendez ring,496
+needle holder,404
+Vannas scissors,219
+biomarker,83

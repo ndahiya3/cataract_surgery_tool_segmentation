@@ -1,0 +1,21 @@
+phacoemulsifier handpiece,micromanipulator,59957
+vitrectomy handpiece,micromanipulator,8404
+irrigation/aspiration handpiece,micromanipulator,7747
+capsulorhexis cystotome,Bonn forceps,1728
+viscoelastic cannula,micromanipulator,1536
+Bonn forceps,primary incision knife,1270
+Bonn forceps,secondary incision knife,1189
+Troutman forceps,suture needle,307
+Bonn forceps,suture needle,225
+needle holder,suture needle,210
+capsulorhexis forceps,Vannas scissors,187
+capsulorhexis forceps,micromanipulator,184
+Bonn forceps,phacoemulsifier handpiece,159
+Bonn forceps,Troutman forceps,157
+capsulorhexis forceps,suture needle,120
+hydrodissection canula,micromanipulator,118
+Troutman forceps,micromanipulator,80
+Bonn forceps,needle holder,66
+viscoelastic cannula,Bonn forceps,9
+biomarker,Mendez ring,4
+viscoelastic cannula,capsulorhexis cystotome,3
